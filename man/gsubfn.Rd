@@ -34,7 +34,7 @@ Normally this is left at its default value.}
 \value{
   As in \code{\link{gsub}}.
 }
-\seealso{ \code{\link{gsub}} }
+\seealso{ \code{\link{gsub}}, \code{\link{strapply}} }
 \examples{
 # adds 1 to each number in third arg
 gsubfn("[[:digit:]]+", function(x) as.numeric(x)+1, "(10 20)(100 30)") 
@@ -45,7 +45,8 @@ gsubfn("([0-9]+):([0-9]+)", f, "abc 10:20 def 30:40 50")
 
 gsubfn( , , "pi = $pi, 2pi = `2*pi`") 
 
-#   extracts numbers from string and places them into vector v
+# Extracts numbers from string and places them into numeric vector v.
+# Also see ?strapply
 v <- c(); f <- function(x) v <<- append(v,as.numeric(x))
 junk <- gsubfn("[0-9]+", f, "12;34:56,89,,12")
 v
