@@ -1,3 +1,17 @@
 
-0.1-1 Added strapply function, a wrapper for gsubfn.
+Changes in 0.1-2
+
+	o cati added
+
+	o updated DESCRIPTION and gsubfn-package.Rd
+
+Changes in 0.1-1 
+
+	o strapply added
+
+	o gsubfn-package.Rd added
+
+Changes in 0.1-0
+
+	o initial release
 

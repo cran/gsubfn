@@ -18,9 +18,19 @@ based on matches rather than delimiters (using
 the function \code{"'strapply'"}) and other
 string transformation applications.
 
+The 
+following are sources of information on \code{"gsubfn"}:
+\tabular{ll}{
+News\tab file.show(system.file("NEWS", package = "gsubfn"))\cr
+Wish List\tab file.show(system.file("WISHLIST", package = "gsubfn"))\cr
+This File\tab package?gsubfn\cr
+Help files\tab ?gsubfn, ?strapply, ?cati\cr
+}
+
 Index:
 \preformatted{
 gsubfn                  Pattern Matching and Replacement
+cati                    cat but with gsubfn-style interpolation.
 strapply                Apply a function over a string or strings.
 }
 }
@@ -31,7 +41,7 @@ strapply                Apply a function over a string or strings.
 gsubfn("[[:digit:]]+", function(x) as.numeric(x)+1, "(10 20)(100 30)") 
 
 # perl-style string interpolation
-gsubfn(,, "pi = $pi\n")
+cati("pi = $pi, e = `exp(1)`\\n")
 
 # split out numbers
 strapply("12abc34 55", "[0-9]+")

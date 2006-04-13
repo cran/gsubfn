@@ -1,7 +1,5 @@
 \name{gsubfn}
 \alias{gsubfn}
-\alias{cat.end}
-\alias{catn}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Pattern Matching and Replacement }
 \description{
