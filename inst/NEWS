@@ -1,4 +1,10 @@
 
+Changes in 0.1-3
+
+	o enhanced gsubfn backref= argument
+
+	o fixed bug in strapply
+
 Changes in 0.1-2
 
 	o cati added

@@ -7,4 +7,4 @@ Maintainer: Gabor Grothendieck <ggrothendieck@gmail.com>
 Description: Miscellaneous string utilities
 Depends: R (>= 2.0.0)
 License: GPL
-Packaged: Sat Apr 22 22:59:08 2006; Grothendieck
+Packaged: Sat Apr 22 22:59:08 2006; Kates

@@ -8,7 +8,7 @@
   replacement text for it.
 }
 \usage{
-gsubfn(pattern = "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`", replacement = function(x, b1, b2) eval(parse(text = paste(b1, b2, sep = "")), env), x, backref = nchar(base::gsub("[^(]", "", pattern)), env = parent.frame(), ...)
+gsubfn(pattern, replacement, x, backref, env = parent.frame(), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -16,8 +16,10 @@ gsubfn(pattern = "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`", replacement = functi
   \item{replacement}{ A function.  See Details. }
   \item{x}{ Same as \code{x} in \code{\link{gsub}} }
   \item{backref}{ Number of backreferences to be passed to function.
-Normally this can be left at its default value but it can be lowered
-for improved efficiency.}
+If omitted it will be determined automatically in which case the function
+must be defined to accept them all.  If a negative
+number is used then its absolute value will be the number of backreferences
+to pass and the matched string itself will not be an argument.}
   \item{env}{ Environment in which to evaluation the replacement function.
 Normally this is left at its default value.}
   \item{\dots}{ Other \code{\link{gsub}} arguments. }
@@ -38,8 +40,8 @@ Normally this is left at its default value.}
 gsubfn("[[:digit:]]+", function(x) as.numeric(x)+1, "(10 20)(100 30)") 
 
 # replaces pairs m:n with their sum
-f <- function(x,y,z) as.numeric(y)+as.numeric(z)
-gsubfn("([0-9]+):([0-9]+)", f, "abc 10:20 def 30:40 50")
+f <- function(x,y) as.numeric(x)+as.numeric(y)
+gsubfn("([0-9]+):([0-9]+)", f, "abc 10:20 def 30:40 50", backref = -2)
 
 gsubfn( , , "pi = $pi, 2pi = `2*pi`") 
 

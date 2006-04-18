@@ -40,5 +40,14 @@ A list of character strings.
 \examples{
 
 strapply("12;34:56,89,,12", "[0-9]+")
+
+\dontrun{
+# convert to chron
+library(chron)
+x <- c("01/15/2005 23:32:45", "02/27/2005 01:22:30")
+x.chron <- strapply(x, "(../../....) (..:..:..)",  chron, backref = -2)
+do.call(c, x.chron)
+
+}
 }
 \keyword{character}

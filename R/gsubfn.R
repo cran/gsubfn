@@ -21,29 +21,37 @@
 # e.g. gsubfn("\\B.", tolower, "I LIKE A BANANA SPLIT")
 #   makes all letters except first in word lower case
 #
-gsubfn <- function(pattern = "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`",
-	  replacement = function(x,b1,b2) eval(parse(text = paste(b1,b2,sep="")), env), 
-          x, backref = nchar(base::gsub("[^(]","",pattern)), 
-	  env = parent.frame(), ...) 
+gsubfn <- function(pattern, replacement, x, backref, env = parent.frame(), ...) 
 {
+   if (missing(replacement)) replacement <- function(x,b1,b2) 
+	eval(parse(text = paste(b1,b2,sep="")), env) 
    if (is.character(replacement)) 
-		return(base::gsub(pattern, replacement, x, ...))
+	return(base::gsub(pattern, replacement, x, ...))
+   if (missing(pattern)) pattern <- "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`"
+   if (missing(backref)) {
+        i <- 1
+	j <- nchar(base::gsub("[^(]","",pattern))+1
+   } else {
+	i <- as.numeric(backref < 0) + 1
+	j <- abs(backref)+1
+   }
    stopifnot(is.character(pattern), is.character(x), is.function(replacement))
    force(env)
    gsub.function <- function(x) {
       x <- base::gsub('"', '\\\\"', x)
       pattern <- paste("(", pattern, ")", sep = "")
-      repl <- function(i) {  
-	      rs <- paste('"\\', seq(i+1), '"', collapse = ",", sep = "") 
+      repl <- function(i,j) {  
+	      rs <- paste('"\\', seq(i,j), '"', collapse = ",", sep = "") 
 	      rs <- paste('",replacement(', rs, '),"', sep = "")
               # if backref= is too large, reduce by 1 and try again
 	      tryCatch(base::gsub(pattern, rs, x, ext = TRUE),
-			error = function(x) if (i > 0) repl(i-1) else stop(x))
+			error = function(x) if (j > i) repl(i,j-1) else stop(x))
       }
-      z <- repl(backref+1)
+      z <- repl(i,j)
       z <- paste('c("', z, '")', sep = "")
       paste(eval(parse(text = z)), collapse = "")
    }
    sapply(x, gsub.function)
 }
+
 
