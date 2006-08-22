@@ -41,12 +41,17 @@ A list of character strings.
 
 strapply("12;34:56,89,,12", "[0-9]+")
 
+# running window of 5 characters using 0-lookahead perl regexp
+x <- "abcdefghijkl"
+strapply(x, "(.)(?=(....))",  paste0, backref = -2, perl = TRUE)[[1]]
+
 \dontrun{
 # convert to chron
 library(chron)
 x <- c("01/15/2005 23:32:45", "02/27/2005 01:22:30")
 x.chron <- strapply(x, "(../../....) (..:..:..)",  chron, backref = -2)
 do.call(c, x.chron)
+
 
 }
 }

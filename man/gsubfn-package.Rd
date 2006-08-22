@@ -23,8 +23,9 @@ following are sources of information on \code{"gsubfn"}:
 \tabular{ll}{
 News\tab file.show(system.file("NEWS", package = "gsubfn"))\cr
 Wish List\tab file.show(system.file("WISHLIST", package = "gsubfn"))\cr
+Demo\tab demo("gsubfn-cut")\cr
 This File\tab package?gsubfn\cr
-Help files\tab ?gsubfn, ?strapply, ?cati\cr
+Help files\tab ?gsubfn, ?strapply, ?cati, ?cati0, ?paste0\cr
 }
 
 Index:

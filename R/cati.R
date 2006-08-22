@@ -41,3 +41,6 @@ function (..., file = "", sep = " ", fill = FALSE, labels = NULL,
     do.call("cat.end", args)
 }
 
+cati0 <- function(..., sep = "") cati(..., sep = sep)
+cat0 <- function(..., sep = "") cat(..., sep = sep)
+paste0 <- function(..., sep = "") paste(..., sep = sep)

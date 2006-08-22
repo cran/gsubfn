@@ -21,7 +21,8 @@
 # e.g. gsubfn("\\B.", tolower, "I LIKE A BANANA SPLIT")
 #   makes all letters except first in word lower case
 #
-gsubfn <- function(pattern, replacement, x, backref, env = parent.frame(), ...) 
+gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE, 
+  env = parent.frame(), ...) 
 {
    if (missing(replacement)) replacement <- function(x,b1,b2) 
 	eval(parse(text = paste(b1,b2,sep="")), env) 
@@ -44,14 +45,14 @@ gsubfn <- function(pattern, replacement, x, backref, env = parent.frame(), ...)
 	      rs <- paste('"\\', seq(i,j), '"', collapse = ",", sep = "") 
 	      rs <- paste('",replacement(', rs, '),"', sep = "")
               # if backref= is too large, reduce by 1 and try again
-	      tryCatch(base::gsub(pattern, rs, x, ext = TRUE),
+	      tryCatch(base::gsub(pattern, rs, x, ...),
 			error = function(x) if (j > i) repl(i,j-1) else stop(x))
       }
       z <- repl(i,j)
       z <- paste('c("', z, '")', sep = "")
       paste(eval(parse(text = z)), collapse = "")
    }
-   sapply(x, gsub.function)
+   sapply(x, gsub.function, USE.NAMES = USE.NAMES)
 }
 
 

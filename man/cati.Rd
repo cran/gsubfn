@@ -1,5 +1,8 @@
 \name{cati}
 \alias{cati}
+\alias{cati0}
+\alias{cat0}
+\alias{paste0}
 \title{ cat with string interpolation}
 \description{
   Similar to \code{"cat"} except that the strings can include 
@@ -7,6 +10,10 @@
 }
 \usage{
 cati(..., file = "", sep = " ", fill = FALSE, labels = NULL, append = FALSE, env = parent.frame(), pattern = "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`", backref = nchar(base::gsub("[^(]", "", pattern)), end = "")
+cati0(..., sep = "")
+
+cat0(..., sep = "")
+paste0(..., sep = "")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -38,8 +45,13 @@ cati(..., file = "", sep = " ", fill = FALSE, labels = NULL, append = FALSE, env
 not used to separate \code{"end"}.}
 }
 \details{
-Similar to \code{"cat"} except that \code{"gsub"}-style string interpolcation
-can be used in the arguments.
+\code{"cati"} is similar to \code{"cat"} except that \code{"gsub"}-style 
+string interpolcation can be used in the arguments.  
+
+\code{"cat0"}, \code{"cati0"} and \code{"paste0"} are similar to 
+the corresponding functions without the \code{"0"} 
+except that the default value for \code{"sep"} is the empty string.
+
 }
 \value{
 None (invisible 'NULL').
