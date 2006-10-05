@@ -1,3 +1,14 @@
+
+Changes in 0.2-0
+
+	o match.funfn
+
+	o as.function.formula improvements
+
+	o $.fn
+
+	o added numerous examples of $.fn to home page
+
 Changes in 0.1-5
 
 	o reference to cat0 missing from gsubfn-package.Rd
@@ -51,4 +62,5 @@ Changes in 0.1-1
 Changes in 0.1-0
 
 	o initial release
+
 

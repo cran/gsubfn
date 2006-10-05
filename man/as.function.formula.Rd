@@ -18,7 +18,7 @@
   environment is the environment of the formula.
 }
 \examples{
-as.formula(~ as.numeric(x) + as.numeric(y))
+as.function(~ as.numeric(x) + as.numeric(y))
 
 }
 \keyword{ character }
