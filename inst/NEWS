@@ -1,5 +1,27 @@
 
-Changes in 0.2-0
+Changes in 0.2-1 (development version)
+
+	o added "note difference" example in strapply
+
+	o letters, LETTERS and pi excluded from args so 
+	  x ~ sin(x*pi/180) can be shortened to ~ sin(x*pi/180)
+	  and 
+ 	  x ~ LETTERS[x] can be reduced to ~ LETTERS[x]
+  	  (previously it would have added pi and LETTERS to arg
+	  lists in these two examples)
+
+	o improved as.function.formula.Rd
+
+	o fixes to eliminate R CMD CHECK warnings under R 2.5.0
+ 
+	o bug fix in $.fn.  If args and match.call order was different
+	  it could fail previously.
+
+	o new demos: gsubfn-gries.R, gsubfn-chron.R, gsubfn-si.R
+
+	o THANKS file
+
+Changes in 0.2-0 (latest CRAN release)
 
 	o match.funfn
 

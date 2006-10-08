@@ -1,6 +1,6 @@
 Package: gsubfn
-Version: 0.2-0
-Date: 2006-10-05
+Version: 0.2-1
+Date: 2006-10-08
 Title: Miscellaneous utilities for strings and function arguments.
 Author: G. Grothendieck
 Maintainer: G. Grothendieck <ggrothendieck@gmail.com>
@@ -16,4 +16,4 @@ Description: gsubfn is like gsub but can take a replacement function
 Depends: R (>= 2.0.0)
 License: GPL (Version 2 or later)
 URL: http://code.google.com/p/gsubfn/
-Packaged: Thu Oct  5 20:22:59 2006; Kates
+Packaged: Mon Oct  9 23:13:03 2006; Kates

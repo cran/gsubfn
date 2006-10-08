@@ -1,6 +1,6 @@
 
 as.function.formula <- function(x, ...) {
-	vars <- all.vars(x[[2]])
+	vars <- setdiff(all.vars(x[[2]]), c("letters", "LETTERS", "pi"))
 	if (length(vars) == 0) { 
 		f <- function() {}
 	} else {
@@ -29,26 +29,48 @@ fn <- structure(NA, class = "fn")
 		mc1 <- mc[-1]
 		nm <- names(mc1)
 		if (is.null(nm)) nm <- rep("", length(args))
-		idx <- match("simplify", tolower(nm), nomatch = 0)
+
+		mcList <- as.list(mc1)
+		p <- parent.frame()
+		mcListE <- lapply(mcList, eval, p)
+
+		# if simplify found set it and remove it from lists
 		simplify <- NULL
+		idx <- match("simplify", tolower(nm), nomatch = 0)
 		if (idx > 0) {
-			if (!is.logical(args[[idx]])) {
-				simplify <- args[[idx]]
-				args <- args[-idx]
+			if (!is.logical(mcListE[[idx]])) {
+				simplify <- mcListE[[idx]]
+				mcListE <- mcListE[-idx]
+				mcList <- mcList[-idx]
 				nm <- nm[-idx]
 			}
 		}
-		is.fo <- sapply(args, function(x) is(x, "formula"))
-		num.fo <- sum(is.fo)
 
-		is.funfo <- is.fo & (num.fo == 1 | seq(along = args) > 1 | 
+		# arg1.idx is the location of argument 1 in mcList
+		# is.fo is a logical vector indicating whether
+		# each list element is or is not a formula
+		# is.funfo is true for formulas to be translated
+
+
+		is.fo <- sapply(mcListE, function(x) is(x, "formula"))
+		arg1.idx <- 0
+		if (is(args[[1]], "formula"))
+		   for(i in seq(along = mcListE))
+		      if (is.fo[i] && format(mcList[[i]]) == format(args[[1]]))
+		         arg1.idx <- i
+		num.fo <- sum(is.fo)
+		is.funfo <- is.fo & (num.fo == 1 | 
+			seq(along = mcList) != arg1.idx | 
 			nm == "FUN")
-		mcList <- as.list(mc)[-1]
-		if (idx > 0) mcList <- mcList[-idx]
 	
-		for(i in seq(along = args)) {
-		   if (is.fo[i] && (num.fo == 1 || i > 1 || nm[[i]] == "FUN"))
-		         mcList[[i]] <- as.function(args[[i]])
+		#for(i in seq(along = args)) {
+		#   if (is.fo[i] && (num.fo == 1 || i > 1 || nm[[i]] == "FUN"))
+		#         mcList[[i]] <- as.function(args[[i]])
+		for(i in seq(along = mcList)) {
+		   if (is.funfo[i]) {
+		         # mcList[[i]] <- as.function(args[[i]])
+			 mcList[[i]] <- as.function(mcListE[[i]])
+		   }
 		}
 		# out <- do.call(FUN, args)
 		out <- do.call(FUN, mcList, env = parent.frame())
@@ -63,4 +85,6 @@ fn <- structure(NA, class = "fn")
 # test
 # fn$list(x ~ 2*x)
 # fn$mapply(~ x + y, 1:10, 21:30)
+
+
 

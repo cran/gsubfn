@@ -4,7 +4,7 @@
 \title{ Transform formula arguments to functions. }
 \description{
   When used in the form \code{fn\$somefunction(...arguments...)}
-  it converts formulas among the arguments to somefunction to
+  it converts formulas among the arguments of somefunction to
   functions using \code{as.function.formula}.  It uses a heuristic
   to decide which formulas to convert.  If any of the following
   are true then that argument is converted from a formula to a
@@ -14,7 +14,7 @@
   argument list.
 }
 \usage{
-"\$.fn"(x, FUN) 
+"$.fn"(x, FUN) 
 }
 \arguments{
   \item{x}{ \code{fn}.}
@@ -25,9 +25,10 @@
 }
 \examples{
 
- # use of formula to specify a function.
-   # LHS of formula is needed since we don't want LETTERS in arg list.
-   fn$lapply(list(1:4, 1:3), x ~ LETTERS[x])
+   # use of formula to specify a function.
+   # Note that LETTERS, letters and pi are automatically excluded from args
+   fn$lapply(list(1:4, 1:3), ~ LETTERS[x])
+   fn$sapply(1:3, ~ sin((n-1):n * pi/180))
 
    # use of simplify = rbind instead of do.call(rbind, by(...)).
    # args to anonymous function are automatically determined.
@@ -51,13 +52,12 @@
    # fn$summaryBy(.~Plant,CO2[-(2:3)],FUN=~mean(range(x)), pref='midrange')
 }
 
-   # generalized inner product
-   # can replace sum(x*y) with any other expression of interest
+   # generalized matrix product
+   # can replace sum(x*y) with any other inner product of interest
+   # this example just performs matrix multiplication of a times b
    a <- matrix(4:1, 2)
    b <- matrix(1:4, 2)
    fn$apply(b, 2, x ~ fn$apply(a, 1, y ~ sum(x*y)))
-
-   a %*% b # same
 
    # integration
    fn$integrate(~1/((x+1)*sqrt(x)), lower = 0, upper = Inf)
@@ -94,9 +94,8 @@
    fn$boot(rivers, ~ median(x, d), R = 2000)
 }
 
-   # must specify args so that pi is not included in arg list
    x <- 0:50/50
-   matplot(x, fn$outer(x, 1:8, x + k ~ sin(x * k*pi)), type = 'blobcsSh')
+   matplot(x, fn$outer(x, 1:8, ~ sin(x * k*pi)), type = 'blobcsSh')
 
 
 }

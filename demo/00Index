@@ -1,1 +1,4 @@
-gsubfn-cut	Use strapply to extract endpoints from cut labels
+gsubfn-chron		read in zoo data with chron datetimes.
+gsubfn-gries		Stefan Gries' Linguistics code.
+gsubfn-cut	Use strapply to extract endpoints from cut labels.
+gsubfn-si		Replace SI scale letter with number,
