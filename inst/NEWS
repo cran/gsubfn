@@ -1,9 +1,36 @@
+Changes in 0.3-1
+
+	o fixed initialization bug in strapply
+
+	o added proto examples to ?gsubfn and ?strapply
+
+Changes in 0.3-0
+
+	o gsubfn and strapply now can take proto arguments in addition
+	  to character strings, functions and formulas
+
+	o vignette added
+
+	o home page abbreviated since most info already in vignette
+
+
+Changes in 0.2-3
+
+	o increased string lengths accepted by gsubfn by eliminating
+	  use of the R parse() command. [Thanks to Stefan Th. Gries
+ 	  for reporting problem.]
+
+	o fixed bug in one of the examples in example(gsubfn)
+
+	o strapply fixes
+
 Changes in 0.2-2
 
 	o added combine= argument to strapply
 
 	o fixed bug associated with using double quotes in gsub (which
-	  also could affect strapply and cati).
+	  also could affect strapply and cati).  [Thanks to Stefan Th.
+	  Gries for reporting problem.]
 
 Changes in 0.2-1 
 
