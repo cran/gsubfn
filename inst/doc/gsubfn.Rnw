@@ -26,10 +26,8 @@ Built on top of \code{gsubfn} is
 \code{strapply} 
 which is similar to \code{gsubfn} except that it returns
 the output of the function rather than substituting it back into
-the source string.  A second included application of \code{gsubfn}, 
-\code{cati}, is like \code{cat} but
-provides quasi-perl style string interpolation of
-its arguments.   In the case of a replacement
+the source string.  
+In the case of a replacement
 formula the formula is interpreted as a function
 as explained in the text.
 In the case of a replacement \pkg{proto} object
@@ -92,9 +90,7 @@ Associated functions built on top of \code{gsubfn}
 are \code{strapply} which is an \code{apply} style
 function that is like \code{gsubfn} except that it returns
 the output of the replacement function rather than substituting
-it back into the string. \code{cati} is like the \proglang{R} function
-\code{cat} except that it uses gsubfn to provide quasi-perl style
-string interpolation.
+it back into the string. 
 
 In the case that a
 function is passed to \code{gsubfn}, for each
@@ -122,11 +118,11 @@ at the beginning and end, respectively, of each string.
 The idea of using a replacement function is also found in the
 \proglang{Lua} language 
 \url{http://www.lua.org/manual/5.1/manual.html#pdf-string.gsub}.
+%% need to figure out how to to bibtex stuff
 %% \citep{gsubfn:Ierusalimschy:2003}
 .
 \pkg{gsubfn} follows that idea and builds on it with \pkg{proto}
-objects, formulas and associated functions such as \code{strapply}
-and \code{cati}.
+objects, formulas and associated function \code{strapply}.
 
 The remainder of this article is organized as follows:
 Section~\ref{sec:gsubfn with functions} explains the use \code{gsubfn}
@@ -135,8 +131,8 @@ Section~\ref{sec:gsubfn with proto objects} explains the use \code{gsubfn}
 with \pkg{proto} objects for applications requiring persistance between
 calls.
 Section~\ref{sec:strapply} explains the use \code{strapply}
-and Section~\ref{sec:cati} explains the use
-of \code{cati}.
+and Section~\ref{sec:Misc} explains the use
+of \code{cat0} and \code{paste0}.
 
 The functions specified in \code{gsubfn} can be specified as
 functions or using a formula notation.  Facilities are included 
@@ -194,7 +190,7 @@ More about \pkg{proto} is available
 in the four documents listed under Documentation on the \pkg{proto} home page:
 \url{http://hhbio.wasser.tu-dresden.de/projects/proto/} .}
 
-\section[The gsubfn Function]{The \code{"gsubfn" Function}}
+\section[The gsubfn Function]{The \code{gsubfn} Function}
 \label{sec:gsubfn with functions}
 
 \textit{Introduction}. The \code{gsubfn} function has a similar calling sequence to the 
@@ -260,7 +256,7 @@ For example, \code{"G"} means giga and corresponds to \code{"e9"}.
 A variation of the last example is available via the command
 \code{demo("gsubfn-si")}.
 
-\section[gsubfn with proto objects]{\code{"gsubfn"} with \pkg{proto} objects}
+\section[gsubfn with proto objects]{\code{gsubfn} with \pkg{proto} objects}
 \label{sec:gsubfn with proto objects}
 
 \textit{Introduction}.
@@ -368,7 +364,7 @@ dput(pwords$words)
 Additional examples of the use of \pkg{proto} objects with \code{gsubfn}
 are available via the command \code{demo("gsubfn-proto")}.
 
-\section[strapply]{\code{"strapply"}}
+\section[strapply]{\code{strapply}}
 \label{sec:strapply}
 
 \textit{Introduction}.
@@ -401,7 +397,7 @@ string, the initial digits and the rest as three separate fields we can write th
 In this example we calculate the midpoint of each interval.
 <<gsubfn-strapply-midpoint>>=
 rn <- c("[-11.9,-10.6]", "(NA,9.3]", "(9.3,8e01]", "(8.01,Inf]")
-colMeans(strapply(rn, "[^\][(),]+", as.numeric, simplify = TRUE))
+colMeans(strapply(rn, "[^][(),]+", as.numeric, simplify = TRUE))
 @
 
 \code{combine}. The
@@ -443,20 +439,13 @@ ls(pwords2)
 dput(pwords2$words)
 @
 
-\section[Miscellaneous]{\code{"Miscellaneous"}}
-\label{sec:cati}
-The \code{cati} function is like \code{cat} except it allows
-for quasi-perl style string interpolation by prefixing variables
-with \code{\$} and enclosing excutable code in backticks.
-For example:
+\section[Miscellaneous]{Miscellaneous}
+\label{sec:Misc}
+The \code{cat0} and \code{paste0}
+function are like \code{cat} and \code{paste} they have
+a default \code{sep} of \code{""}.
 
-<<gsubfn-cati>>=
-   cati("e = `exp(1)`, pi = $pi \n")
-@
-
-Also provided are \code{cati0}, \code{cat0} and \code{paste0} which are like 
-\code{cati}, \code{cat} and \code{paste} except that the default \code{sep} is 
-\code{""}. Here is an example of using paste0.  This example
+Here is an example of using paste0.  This example
 retrieves overlapping segments consisting of a letter, space and letter.
 It uses the zero-lookahead perl style pattern matching expression.
 
@@ -465,23 +454,53 @@ strapply(' a b c d e f ', ' [a-z](?=( [a-z] ))', paste0, perl = TRUE)[[1]]
 @
 
 
-\section[fn]{\code{"fn"}}
+\section[fn]{\code{fn}}
 \label{sec:fn}
 
 Wherever a function can be specified in \code{gsubfn} and \code{strapply}
 one can specify a formula instead as discussed previously.  This facility
 has been extended to work with any \proglang{R} function.
-Just preface the function with \code{fn\$} and formula arguments will be intercepted 
+Just preface the function with \code{fn\$} and 
+
+\begin{enumerate}
+\item{formula arguments will be intercepted 
 and translated to functions allowing a compact representation of the call. 
+Which formulas are actually translated to functions is dependent on rules
+to be discussed.
 The right hand side of the formula 
 represents the body of the function.
 The left hand side of the formula represents the arguments and defaults to the 
 free variables in the order encountered.  The environment of
 the function is set to the environment of the formula.
 \code{letters}, \code{LETTERS} and \code{pi} are not considered free variables
-and will not appear in arguments.
-\code{fn\$} also intercepts the \code{simplify} argument if its value is a function. 
-In that case it passes the result through \code{do.call(simplify, result)}. 
+and will not appear in arguments. }
+\item{character arguments will be intercepted and quasi-perl style string
+interpolation will be performed.  Which character strings to operate on
+are dependent on rules to be discussed.}
+\item{the \code{simplify} argument if its value is a function
+is intercepted.
+In 
+that case if \code{result} is the result of running the function without 
+the \code{simplify} argument then it returns
+\code{do.call(simplify, result)}.}
+\end{enumerate}
+The rules for determining which formulas to translate and which character
+strings to apply quasi-perl style string interpolation are as follows:
+\begin{enumerate}
+\item{any formula argument 
+that has been specified with a double \code{\~{}}, i.e.
+\code{\~{}\~{}}, is converted to a function after removing the double
+\code{\~{}} and replacing it with a single \code{\~{}}.}
+\item{any character string argument that has been specified with a first
+character of \code{\textbackslash{}1} has string interpolation applied to it
+after the \code{\textbackslash{}1} is removed.}
+\item{if there are no formulas with double \code{\~{}} and no
+character strings beginning with \code{\textbackslash{}1} then all formulas
+are converted to functions and if there are no formulas then all
+character strings have string interpolation done.}
+\end{enumerate}
+The last possibility is the actually the most commonly used and 
+almost all our examples will illustrate that case.
 For example,
 
 <<gsubfn-fn>>=
@@ -493,25 +512,21 @@ fn$lapply(list(1:4, 1:5), ~ LETTERS[x])
 fn$mapply(~ seq_len(x) + y * z, 1:3, 4:6, 2) # list(9, 11:12, 13:15)
 
 fn$by(CO2[4:5], CO2[2], x ~ coef(lm(uptake ~ ., x)), simplify = rbind)
+
 @
 
-The first argument is often intended to be formula.
-\code{lm} and lattice \code{xyplot} illustrate this.
-Thus
-formulas in the first argument are only converted to functions
-if they are the only formula among the arguments or if they
-have a formal argument name of \code{FUN}.  Formulas among
-the second and subsequent arguments are always converted.
-That allows the conversion to correctly handle situations like the
-following
-where the first formula is correctly left untranslated. This
+Here is an example where we have two formulas, one of which should
+be translated and another should not.  In this case we 
+place a double \code{\~{}} in the second formula to signify that
+one it represents a function.
+The first formula is then correctly left untranslated. This
 example places a panel number in the body of each panel.
 
 <<gsubfn-fn-lattice,eval=FALSE>>=
 library(lattice)
 library(grid)
 print(fn$xyplot(uptake ~ conc | Plant, CO2,
-      panel = ~ { panel.xyplot(...); grid.text(panel.number(), .1, .85) }))
+      panel = ~~ { panel.xyplot(...); grid.text(panel.number(), .1, .85) }))
 @
 
 \begin{figure}[hpb]
@@ -557,24 +572,27 @@ of each of \code{conc} and \code{uptake} for each \code{Type}.
 The calculation is repeated using \code{cast} from the \pkg{reshape}
 package and again using \code{summaryBy} from the \pkg{doBy}
 package.
+Note that in two of the examples there are two formulas each and
+one is to be regarded as a function and the other not so we must
+use double \code{~{}} to distinguish the cases.
 <<gsubfn-fn-aggregate-0,echo=FALSE,results=hide>>=
 fn$aggregate(CO2[4:5], CO2[3], ~ mean(range(x)))
 
 library(reshape)
-fn$cast(Type ~ variable, data = melt(CO2, id = 1:3), ~ mean(range(x)))
+fn$cast(Type ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
 
 library(doBy) # need version 0.9 or later
-fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~ c(midrange = mean(range(x))))
+fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
 @
 
 <<gsubfn-fn-aggregate>>=
 fn$aggregate(CO2[4:5], CO2[3], ~ mean(range(x)))
 
 library(reshape)
-fn$cast(Treatment ~ variable, data = melt(CO2, id = 1:3), ~ mean(range(x)))
+fn$cast(Treatment ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
 
 library(doBy) # need version 0.9 or later
-fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~ c(midrange = mean(range(x))))
+fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
 @
 
 
@@ -637,13 +655,13 @@ function of \code{tau} is specified using a formula.
 <<gsubfn-fn-quantreg-load,echo=FALSE,results=hide>>=
 library(quantreg)
 data(engel)
-plot(engel$x, engel$y, xlab = 'income', ylab = 'food expenditure')
-junk <- fn$lapply(1:9/10, tau ~ abline(coef(rq(y ~ x, tau, engel))))
+plot(engel$income, engel$foodexp, xlab = 'income', ylab = 'food expenditure')
+junk <- fn$lapply(1:9/10, tau ~ abline(coef(rq(foodexp ~ income, tau, engel))))
 @
 
 <<gsubfn-fn-quantreg,eval=FALSE>>=
-plot(engel$x, engel$y, xlab = 'income', ylab = 'food expenditure')
-junk <- fn$lapply(1:9/10, tau ~ abline(coef(rq(y ~ x, tau, engel))))
+plot(engel$income, engel$foodexp, xlab = 'income', ylab = 'food expenditure')
+junk <- fn$lapply(1:9/10, tau ~ abline(coef(rq(foodexp ~ income, tau, engel))))
 @
 
 
@@ -737,10 +755,13 @@ formulation:
 fn$sapply( 1:10, ~ if (x%%2==0) x^2, simplify = c)
 @
 
+Here is an example of string interpolation:
+<<gsubfn-fn-cat>>=
+fn$cat("pi = $pi, exp = `exp(1)`\n")
+@
 
-
-\section[match.funfn and as.function.formula]{\code{"match.funfn"} and 
-\code{"as.function.formula"}}
+\section[match.funfn and as.function.formula]{\code{match.funfn} and 
+\code{as.function.formula}}
 \label{sec:match.funfn}
 
 Developers who wish to add the \code{fn\$} capability to their own 

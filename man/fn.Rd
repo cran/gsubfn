@@ -1,6 +1,7 @@
 \name{fn}
 \alias{fn}
 \alias{$.fn}
+\alias{eval.with.vis}
 \title{ Transform formula arguments to functions. }
 \description{
   When used in the form \code{fn\$somefunction(...arguments...)}
@@ -12,6 +13,16 @@
   (2) the name of the formula argument is \code{FUN} or
   (3) the formula argument is not the first argument in the
   argument list.
+
+  It also removes any \code{simplify} argument whose value is
+  not logical and after processing it in the same way just
+  discussed in order to interpret it as a function it passes
+  the output of the command through \code{do.call(simplify, output)}.
+
+  It also performs quasi-perl style string interpolation on any 
+  character string arguments that begin with \code{\\1} removing
+  the \code{\\1} character.  A dollar sign followed by a variable
+  name or \code{R} code within backticks are both evaluated.
 }
 \usage{
 "$.fn"(x, FUN) 
@@ -29,7 +40,7 @@
    # use of formula to specify a function.
    # Note that LETTERS, letters and pi are automatically excluded from args
    fn$lapply(list(1:4, 1:3), ~ LETTERS[x])
-   fn$sapply(1:3, ~ sin((n-1):n * pi/180))
+   fn$sapply(1:3, ~ sin((n-1) * pi/180))
 
    # use of simplify = rbind instead of do.call(rbind, by(...)).
    # args to anonymous function are automatically determined.
@@ -41,16 +52,19 @@
    # mid range of conc and uptake by Plant
    fn$aggregate(CO2[,4:5], CO2[1], ~ mean(range(x)))
 
+   # string interpolation
+   j <- fn$cat("pi = $pi, exp = `exp(1)`\n")
+
 \dontrun{
 
    # same but use cast/melt from reshape package
    library(reshape)
-   fn$cast(Plant ~ variable, data = melt(CO2, id = 1:3), ~ mean(range(x)))
+   fn$cast(Plant ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
 
    # same
    # uncomment when new version of doBy comes out (expected shortly)
    # library(doBy)
-   # fn$summaryBy(.~Plant,CO2[-(2:3)],FUN=~mean(range(x)), pref='midrange')
+   # fn$summaryBy(.~Plant,CO2[-(2:3)],FUN= ~~mean(range(x)), pref='midrange')
 }
 
    # generalized matrix product

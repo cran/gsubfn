@@ -1,3 +1,27 @@
+Changes in 0.3-3
+
+	o changed quantreg example to reflect change in engel data set
+
+Changes in 0.3-2
+
+	o revised gsubfn-packages.Rd
+
+	o fn$ now performs quasi-perl style interpolation 
+
+	o cati, cati0 removed since fn$cat and fn$cat0 can be used.
+
+	o rules for which formulas are translated and which character 
+	  strings are interpolated have been changed and simplified:
+	  1. formulas specified with ~~ (double ~) are translated to functions
+	  2. character strings beginning with \1 are translated to functions
+	  3. if the above rules result in no translation/interpolation
+	     then all formulas are translated if there are any formulas
+ 	     or, if not, then all character strings are interpolated
+          In most cases rule #3 is used.
+
+	o fn$f now returns invisibly if f does (thanks to Duncan Murdoch
+	  for eval.with.vis)
+
 Changes in 0.3-1
 
 	o fixed initialization bug in strapply
