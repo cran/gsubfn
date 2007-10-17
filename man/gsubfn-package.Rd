@@ -10,7 +10,8 @@ Generalized \code{"'gsub'"} and associated functions.
 \details{
 gsubfn is an R package used for string matching, substitution and parsing. A
 seemingly small generalization of gsub, namely allow the replacement string to
-be a replacement function, formula or proto object, can result in significantly
+be a replacement function, list, 
+formula or proto object, can result in significantly
 increased power and applicability.  The resulting function, gsubfn is the
 namesake of this package.  
 In the case of a replacement formula the formula is interpreted
@@ -71,7 +72,7 @@ gsubfn("[[:digit:]]+", ~ as.numeric(x)+1, "(10 20)(100 30)")
 
 # place {1} after first word, {2} after second word
 p <- proto(fun = function(this, x) paste0(x, "{", count, "}" ))
-gsubfn("\\w+", p, "hello world")
+gsubfn("\\\\w+", p, "hello world")
 
 # replace each number with its cumulative sum
 pcumsum <- proto(pre = function(this) this$sum <- 0,

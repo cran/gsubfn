@@ -1,3 +1,4 @@
+# eval.with.vis is no longer used - withVisible is used instead
 eval.with.vis <- function (expr) {
      expr <- substitute(expr)
      pf <- parent.frame()
@@ -9,15 +10,18 @@ eval.with.vis <- function (expr) {
 as.function.formula <- function(x, ...) {
 	vars <- setdiff(all.vars(x[[2]]), c("letters", "LETTERS", "pi"))
 	if (length(vars) == 0) { 
-		f <- function() {}
+		f0 <- function() {}
+		body(f0) <- x[[length(x)]]
+		environment(f0) <- environment(x)
+		f0
 	} else {
 		f <- function(x) {}
 		formals(f) <- rep(formals(f), length(vars))
 		names(formals(f)) <- vars
+		body(f) <- x[[length(x)]]
+		environment(f) <- environment(x)
+		f
 	}
-	body(f) <- x[[length(x)]]
-	environment(f) <- environment(x)
-	f
 }
 
 match.funfn <- function(x, ...) UseMethod("match.funfn")
@@ -58,9 +62,9 @@ fn <- structure(NA, class = "fn")
 		# is.fo2 is a logical vector indicating whether each
 		#    list element has or does not have a ~~ (double ~)
 
-		is.fo <- sapply(mcListE, function(x) is(x, "formula"))
+		is.fo <- sapply(mcListE, function(x) inherits(x, "formula"))
 		any.fo <- any(is.fo)
-		is.fo2 <- sapply(mcListE, function(x) is(x, "formula") &&
+		is.fo2 <- sapply(mcListE, function(x) inherits(x, "formula") &&
 			length(x[[length(x)]]) > 1 &&
 			identical(x[[length(x)]][[1]], as.name("~")))
 		# change ~~ to ~
@@ -82,7 +86,7 @@ fn <- structure(NA, class = "fn")
 		if (any.chara)
 		   for(i in seq(along = mcListE))
 		      if (is.chara[i])
-			mcListE[[i]] <- gsubfn(x = substring(mcListE[[i]], 2))
+			mcListE[[i]] <- gsubfn(x = substring(mcListE[[i]], 2), env = p)
 
 		# if no ~~ formulas and no \1 strings use default strategy
 		# of converting all formulas to functions and if no formulas
@@ -96,13 +100,14 @@ fn <- structure(NA, class = "fn")
 		      if (any.char)
 		         for(i in seq(along = mcListE))
 		            if (is.char[i])
-			       mcListE[[i]] <- gsubfn(x = mcListE[[i]])
+			       mcListE[[i]] <- gsubfn(x = mcListE[[i]], env = p)
 		   }
 		}
 			
 		# out <- do.call(FUN, args)
 		# thanks Duncan for eval.with.vis !!!
-		out <- eval.with.vis(do.call(FUN, mcListE, env=parent.frame()))
+		# out <- eval.with.vis(do.call(FUN, mcListE, env=p))
+		out <- withVisible(do.call(FUN, mcListE, env=p))
 		vis <- out$visible
 		out <- out $value
 		if (!is.null(simplify)) {

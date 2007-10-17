@@ -23,22 +23,38 @@
 gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE, 
   env = parent.frame(), ...) 
 {
-   if (missing(replacement)) replacement <- function(x,b1,b2) 
-	eval(parse(text = paste(b1,b2,sep="")), env) 
+
+   here <- environment()
+
+   if (missing(replacement)) here$replacement <- function(...) 
+	eval(parse(text = paste(..., sep = "")), env) 
+
    if (is.character(replacement)) 
 	return(base::gsub(pattern, replacement, x, ...))
+
+   if (is.list(replacement)) {
+			values.replacement <- replacement
+			names.replacement <- names(replacement)
+			here$replacement <- function(...) {
+				idx <- match(..1, names.replacement, 
+					nomatch = match("", names.replacement, nomatch = 0))
+				if (idx > 0) values.replacement[[idx]]
+				else ..1
+			}
+    }
    # if (inherits(replacement, "formula")) replacement <- as.function(replacement)
    if (missing(pattern)) pattern <- "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`"
    if (missing(backref)) {
-        i <- 1
 	j <- nchar(base::gsub("[^(]","",pattern))+1
+    i <- 1
+	i <- min(2, j)
    } else {
 	i <- as.numeric(backref < 0) + 1
 	j <- abs(backref)+1
    }
 
    e <- NULL
-   if (!is(replacement, "formula") && !is.function(replacement)) {
+   if (!inherits(replacement, "formula") && !is.function(replacement)) {
 	e <- replacement
 	e$pattern <- pattern
 	e$x <- x
@@ -55,9 +71,9 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
 		this$match <- c(...)
 		this$fun(...)
 	}
-	replacement <- e$replacement
+	here$replacement <- e$replacement
    }
-   replacement <- match.funfn(replacement)
+   here$replacement <- match.funfn(replacement)
    stopifnot(is.character(pattern), is.character(x), is.function(replacement))
    force(env)
    gsub.function <- function(x) {
@@ -98,6 +114,17 @@ strapply <-
 function (X, pattern, FUN = function(x, ...) x, ...,
     simplify = FALSE, USE.NAMES = FALSE, combine = c) 
 {
+	if (is.character(FUN)) {
+		FUN.orig <- FUN
+		FUN <- function(...) FUN.orig
+	} else if (is.list(FUN)) {
+		FUN.orig <- FUN
+		FUN <- function(...) {
+			FUN.orig[[match(..1, names(FUN.orig), 
+				nomatch = match("", names(FUN.orig)))]]
+		}
+	}
+		
     p <- if (is.proto(FUN)) {
 		FUN$X <- X
 		FUN$pattern <- pattern
@@ -107,18 +134,18 @@ function (X, pattern, FUN = function(x, ...) x, ...,
 		proto(
 			pre = function(this) { 
 				this$first <- TRUE
-				v <- NULL
+				this$v <- NULL
 				if (!is.null(FUN[["pre"]])) FUN$pre()
 			},
 			fun = function(this, ...) {
-				FUN$count <- count
-				this$v <- if (first) combine(FUN$fun(...))
-				else c(v, combine(FUN$fun(...)))
-				first <<- FALSE
+				FUN$count <- this$count
+				this$v <- if (this$first) combine(FUN$fun(...))
+				else c(this$v, combine(FUN$fun(...)))
+				this$first <- FALSE
 			},
 			post = function(this) {
 				# cat("A:", first, "\n")
-				if (first) this$v <- NULL
+				if (this$first) this$v <- NULL
 				if (!is.null(FUN[["post"]])) FUN$post()
 			},
 		    ) 
@@ -130,13 +157,13 @@ function (X, pattern, FUN = function(x, ...) x, ...,
 				this$v <- NULL 
 			},
 			fun = function(this, ...) {
-				this$v <- if (first) combine(FUN(...))
-				else c(v, combine(FUN(...)))
-				first <<- FALSE
+				this$v <- if (this$first) combine(FUN(...))
+				else c(this$v, combine(FUN(...)))
+				this$first <- FALSE
 			},
 			post = function(this) { 
 				# cat("B:", first, "\n")
-				if (first) this$v <- NULL  
+				if (this$first) this$v <- NULL  
 			}
 		)
         }
@@ -147,8 +174,4 @@ function (X, pattern, FUN = function(x, ...) x, ...,
         result
     else do.call(match.funfn(simplify), result)
 }
-
-
-
-
 
