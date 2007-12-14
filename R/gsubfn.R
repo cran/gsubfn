@@ -44,8 +44,12 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
     }
    # if (inherits(replacement, "formula")) replacement <- as.function(replacement)
    if (missing(pattern)) pattern <- "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`"
+   # i is 1 if there are no backreferences and 2 otherwise
+   # j is 1 plus the number of backreferences
    if (missing(backref)) {
-	j <- nchar(base::gsub("[^(]","",pattern))+1
+    noparen <- base::gsub("\\\\.", "", pattern)
+    noparen <- base::gsub("\\[[^\\]]*\\]", "", noparen)
+	j <- nchar(base::gsub("[^(]","", noparen))+1
     i <- 1
 	i <- min(2, j)
    } else {
@@ -85,17 +89,22 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
           e$count <- 0
           if ("pre" %in% ls(e)) e$pre()
       }
+	  # replace match with \1\2 \\1 \2 \\2 \2 ... \1
+	  # replace each backref in regexp with 
+	  # \1\2 followed by backrefs separated by \2 all followed by \1
+	  # Using that create a string \1\2 first backref \2 second ... \1
+	  # and perform replacement
       repl <- function(i,j) {  
 	      rs <- paste('\\', seq(i,j), collapse = "\2", sep = "") 
 	      rs <- paste('\1\2', rs, '\1', sep = "")
-              # if backref= is too large, reduce by 1 and try again
+          # if backref= is too large, reduce by 1 and try again
 	      tryCatch(base::gsub(pattern, rs, x, ...),
 			error = function(x) if (j > i) repl(i,j-1) else stop(x))
       }
       z <- repl(i,j)
       z <- strsplit(z, "\1")[[1]]
       f <- function(s) {
-	if (nchar(s) > 0 && substring(s,1,1) == "\2") {
+	 if (nchar(s) > 0 && substring(s,1,1) == "\2") {
 	    s <- sub("\2$", "\2\2", s)
 	    L <- as.list(strsplit(s, "\2")[[1]][-1])
             # if (!is.null(e)) L <- c(list(e), L)
@@ -112,19 +121,22 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
 
 strapply <- 
 function (X, pattern, FUN = function(x, ...) x, ...,
-    simplify = FALSE, USE.NAMES = FALSE, combine = c) 
-{
+    simplify = FALSE, USE.NAMES = FALSE, combine = c) {
+	here <- environment()
+	combine <- match.funfn(combine)
 	if (is.character(FUN)) {
 		FUN.orig <- FUN
 		FUN <- function(...) FUN.orig
 	} else if (is.list(FUN)) {
-		FUN.orig <- FUN
-		FUN <- function(...) {
-			FUN.orig[[match(..1, names(FUN.orig), 
-				nomatch = match("", names(FUN.orig)))]]
+		values.replacement <- FUN
+		names.replacement <- names(FUN)
+		here$FUN <- function(...) {
+			idx <- match(..1, names.replacement, 
+				nomatch = match("", names.replacement, nomatch = 0))
+			if (idx > 0) values.replacement[[idx]] else ..1
 		}
-	}
-		
+    }
+   
     p <- if (is.proto(FUN)) {
 		FUN$X <- X
 		FUN$pattern <- pattern
@@ -170,8 +182,8 @@ function (X, pattern, FUN = function(x, ...) x, ...,
     ff <- function(x) { gsubfn(pattern, p, x, ...); p$v }
     result <- sapply(X, ff, 
 	simplify = is.logical(simplify) && simplify, USE.NAMES = USE.NAMES)
-    if (is.logical(simplify)) 
-        result
-    else do.call(match.funfn(simplify), result)
+    if (is.logical(simplify)) result else {
+		do.call(match.funfn(simplify), result)
+	}
 }
 
