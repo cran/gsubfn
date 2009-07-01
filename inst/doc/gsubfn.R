@@ -66,7 +66,7 @@ dput(pwords$words)
 ### chunk number 8: gsubfn-strapply-midpoint
 ###################################################
 rn <- c("[-11.9,-10.6]", "(NA,9.3]", "(9.3,8e01]", "(8.01,Inf]")
-colMeans(strapply(rn, "[^][(),]+", as.numeric, backref = 0, simplify = TRUE))
+colMeans(strapply(rn, "[^][(),]+", as.numeric, simplify = TRUE))
 
 
 ###################################################

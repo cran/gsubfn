@@ -44,13 +44,12 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
     }
    # if (inherits(replacement, "formula")) replacement <- as.function(replacement)
    if (missing(pattern)) pattern <- "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`"
-   # i is 1 if there are no backreferences and 2 otherwise
+   # i is 1 if the entire match is passed and 2 otherwise.
    # j is 1 plus the number of backreferences
-   if (missing(backref)) {
+   if (missing(backref) || is.null(backref)) {
     noparen <- base::gsub("\\\\.", "", pattern)
     noparen <- base::gsub("\\[[^\\]]*\\]", "", noparen)
 	j <- nchar(base::gsub("[^(]","", noparen))+1
-    i <- 1
 	i <- min(2, j)
    } else {
 	i <- as.numeric(backref < 0) + 1
@@ -119,7 +118,7 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
    sapply(x, gsub.function, USE.NAMES = USE.NAMES)
 }
 
-strapply <- 
+ostrapply <- 
 function (X, pattern, FUN = function(x, ...) x, ...,
     simplify = FALSE, USE.NAMES = FALSE, combine = c) {
 	here <- environment()
@@ -185,5 +184,68 @@ function (X, pattern, FUN = function(x, ...) x, ...,
     if (is.logical(simplify)) result else {
 		do.call(match.funfn(simplify), result)
 	}
+}
+
+strapply <-
+function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
+	ignore.case = FALSE, perl = FALSE, engine = c("tcl", "R"), 
+	simplify = FALSE, USE.NAMES = FALSE, combine = c) {
+				engine <- match.arg(engine)
+				if (engine == "R" || is.proto(FUN) || perl) return(ostrapply(X = X, 
+						pattern = pattern, FUN = FUN, backref = backref, 
+						..., perl = perl, simplify = simplify, USE.NAMES = USE.NAMES, 
+						combine = combine))
+                if (is.proto(FUN)) {
+                        # TODO
+                } else if (is.character(FUN)) {
+                        FUN.orig <- FUN
+                        FUN <- function(...) FUN.orig
+                } else if (is.list(FUN)) {
+                        values.replacement <- FUN
+                        names.replacement <- names(FUN)
+                        FUN <- function(...) {
+                                idx <- match(..1, names.replacement, 
+                                        nomatch = match("", names.replacement, nomatch = 0))
+                                if (idx > 0) values.replacement[[idx]] else ..1
+                        }
+                } else {
+                        FUN <- match.funfn(FUN)
+                }
+				ff <- function(x) {
+					s <- strapply1(x, pattern, backref, ignore.case)
+					L <- lapply(seq_len(ncol(s)), function(j) {
+						combine(do.call(FUN, as.list(s[, j]))) })
+						# combine(do.call(FUN, list(s[, j]))) })
+					do.call("c", L)
+				}
+                result <- sapply(X, ff,
+                        simplify = is.logical(simplify) && simplify, 
+                        USE.NAMES = USE.NAMES)
+                if (is.logical(simplify)) result
+                else do.call(match.funfn(simplify), result)
+
+}
+
+strapply1 <- function(x, e, backref, ignore.case = FALSE) {
+        tcl("set", "e", e)
+        tcl("set", "x", x)
+        .Tcl('set about [regexp -about -- $e]')
+		about <- as.numeric(tclvalue(.Tcl("lindex $about 0"))) + 1
+		s <- if (ignore.case) 'set r [regexp -all -inline -nocase -- $e $x]'
+		else 'set r [regexp -all -inline -- $e $x]'
+        # .Tcl('set r [regexp -all -inline -- $e $x]')
+        .Tcl(s)
+        n <- as.numeric(tclvalue(.Tcl("llength $r")))
+        out <- sapply(seq(0, length = n), 
+                function(i) tclvalue(.Tcl(paste("lindex $r", i))))
+		out <- matrix(out, about)
+		if (is.null(backref)) {
+			if (about > 1) out[-1,, drop = FALSE] 
+			else out
+		} else {
+			mn <- 1 + backref > 0
+			mx <- min(abs(backref) + 1, about)
+			out[seq(mn, mx),, drop = FALSE]
+		}
 }
 
