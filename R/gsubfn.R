@@ -44,6 +44,7 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
     }
    # if (inherits(replacement, "formula")) replacement <- as.function(replacement)
    if (missing(pattern)) pattern <- "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`"
+   pattern <- as.character(pattern)
    # i is 1 if the entire match is passed and 2 otherwise.
    # j is 1 plus the number of backreferences
    if (missing(backref) || is.null(backref)) {
@@ -188,13 +189,18 @@ function (X, pattern, FUN = function(x, ...) x, ...,
 
 strapply <-
 function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
-	ignore.case = FALSE, perl = FALSE, engine = c("tcl", "R"), 
+	ignore.case = FALSE, perl = FALSE, 
+	engine = if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R", 
 	simplify = FALSE, USE.NAMES = FALSE, combine = c) {
 				engine <- match.arg(engine)
+				combine <- match.funfn(combine)
+				stopifnot(!missing(pattern))
+				pattern <- as.character(pattern)
 				if (engine == "R" || is.proto(FUN) || perl) return(ostrapply(X = X, 
 						pattern = pattern, FUN = FUN, backref = backref, 
 						..., perl = perl, simplify = simplify, USE.NAMES = USE.NAMES, 
 						combine = combine))
+				stopifnot(require(tcltk))
                 if (is.proto(FUN)) {
                         # TODO
                 } else if (is.character(FUN)) {
