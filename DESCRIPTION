@@ -1,6 +1,6 @@
 Package: gsubfn
-Version: 0.5-1
-Date: 2010-03-15
+Version: 0.5-2
+Date: 2010-03-23
 Title: Utilities for strings and function arguments.
 Author: G. Grothendieck
 Maintainer: G. Grothendieck <ggrothendieck@gmail.com>
@@ -22,6 +22,6 @@ Suggests: boot, chron, doBy, grid, lattice, quantreg, reshape, tcltk,
         zoo
 License: GPL (>= 2)
 URL: http://gsubfn.googlecode.com
-Packaged: 2010-03-16 17:07:11 UTC; Louis
+Packaged: 2010-03-23 16:04:02 UTC; Louis
 Repository: CRAN
-Date/Publication: 2010-03-16 17:23:48
+Date/Publication: 2010-03-23 19:33:14

@@ -192,7 +192,6 @@ function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
 	ignore.case = FALSE, perl = FALSE, 
 	engine = if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R", 
 	simplify = FALSE, USE.NAMES = FALSE, combine = c) {
-				engine <- match.arg(engine)
 				combine <- match.funfn(combine)
 				stopifnot(!missing(pattern))
 				pattern <- as.character(pattern)
@@ -200,7 +199,7 @@ function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
 						pattern = pattern, FUN = FUN, backref = backref, 
 						..., perl = perl, simplify = simplify, USE.NAMES = USE.NAMES, 
 						combine = combine))
-				stopifnot(require(tcltk))
+				stopifnot(engine == "tcl", require(tcltk))
                 if (is.proto(FUN)) {
                         # TODO
                 } else if (is.character(FUN)) {
