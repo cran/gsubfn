@@ -10,8 +10,8 @@ Similar to \code{"'gsubfn'"} except instead of performing substitutions
 it returns the output of \code{"'FUN'"}.}
 \usage{
 strapply(X, pattern, FUN = function(x, ...) x, backref = NULL, ..., 
-	ignore.case = FALSE, perl = FALSE, 
-	engine = if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R", 
+	empty = NULL,
+	ignore.case = FALSE, perl = FALSE, engine = getOption("gsubfn.engine"),
 	simplify = FALSE, USE.NAMES = FALSE, combine = c)
 }
 \arguments{
@@ -23,6 +23,7 @@ strapply(X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
           to be applied to each element of 
           \code{"'X'"}.  See discussion in \code{\link{gsubfn}}. }
   \item{backref}{See \code{\link{gsubfn}}.}
+  \item{empty}{If there is no match to a string return this value.}
   \item{ignore.case}{If \code{TRUE} then case is ignored in the \code{pattern}
 		argument.}
   \item{perl}{If \code{TRUE} then \code{engine="R"} is used with
@@ -41,8 +42,9 @@ strapply(X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
   \item{USE.NAMES}{ logical; if \code{"'TRUE'"} and if \code{"'X'"} is 
 	character, use \code{"'X'"} as
           'names' for the result unless it had names already.}
-  \item{combine}{multiple results from same string are combined
-     using this function.  The default is \code{"c"}. \code{"list"}
+  \item{combine}{combine is a function applied to the components of 
+  	 the result of \code{FUN}.
+     The default is \code{"c"}. \code{"list"}
      is another common choice.  The default may change to be \code{"list"}
      in the future.}
 }

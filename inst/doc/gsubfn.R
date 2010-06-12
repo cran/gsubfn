@@ -179,7 +179,6 @@ set.seed(1)
 X <- data.frame(X = rnorm(24), W = runif(24), A = gl(2, 1, 24), B = gl(2, 2, 24))
 fn$aggregate(1:nrow(X), X[3:4], i ~ weighted.mean(X[i,1], X[i,2]))
 
-fn$by(X, X[3:4], ~ data.frame(wmean = weighted.mean(x[1], x[2]), x[1, 3:4]), simplify = rbind)
 
 
 ###################################################

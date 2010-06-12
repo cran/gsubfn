@@ -1,3 +1,27 @@
+Changes in 0.5-3
+
+    o new argument, empty, on strapply
+
+    o gsubfn now has an engine argument.  This was already the case
+	  with strapply.
+
+	o new global option "gsubfn.engine" whose value can be "tcl" or "R". It is
+	  used as the default value for the gsubfn and strappy engine argument.  If
+	  the option is not set then gsubfn and strapply default to the "tcl" 
+	  regular expression engine if the current R installation has tcltk 
+	  capability and "R" otherwise.
+
+    o gsubfn pattern is no longer parenthesized internally if (1) engine = "tcl"
+	  or if (2) engine = "R" and backref > 0.  See the example of replacing 
+	  double characters in ?gsubfn .
+
+    o if the function in gsubfn or strapply has an `&` argument then backref
+	  will be taken to be negative and the entire match passed through that arg.
+
+    o in as.function.formula if any of ..1 through ..9 are found as free
+      variables then ... is used as a trailng argument instead. If `&` is a
+	  free variable then it is placed at the beginning of the argument list.
+
 Changes in 0.5-2
 
     o bug fixes

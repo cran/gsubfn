@@ -21,16 +21,37 @@
 #   makes all letters except first in word lower case
 #
 gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE, 
+  ignore.case = FALSE, engine = getOption("gsubfn.engine"),
   env = parent.frame(), ...) 
 {
+
+   if (missing(engine) || is.null(engine))
+      engine <- if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R"
+   engine <- match.arg(engine, c("tcl", "R"))
+   if (engine == "tcl") stopifnot(require(tcltk))
 
    here <- environment()
 
    if (missing(replacement)) here$replacement <- function(...) 
 	eval(parse(text = paste(..., sep = "")), env) 
 
-   if (is.character(replacement)) 
-	return(base::gsub(pattern, replacement, x, ...))
+   if (is.character(replacement)) {
+     if (engine == "R")
+	   return(base::gsub(pattern, replacement, x, ...))
+	 else {
+	   f <- function(x) {
+		   tcl("set", "pattern", pattern)
+		   tcl("set", "replacement", replacement)
+           tcl("set", "x", x)
+		   s <- if (ignore.case) {
+			   'set r [regsub -all -nocase -- $pattern $x $replacement]'
+		   } else 'set r [regsub -all -- $pattern $x $replacement]'
+	       tclvalue(.Tcl(s))
+       }
+	   x[] <- sapply(x, f)
+	   return(x)
+	 }
+   }
 
    if (is.list(replacement)) {
 			values.replacement <- replacement
@@ -45,18 +66,8 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
    # if (inherits(replacement, "formula")) replacement <- as.function(replacement)
    if (missing(pattern)) pattern <- "[$]([[:alpha:]][[:alnum:].]*)|`([^`]+)`"
    pattern <- as.character(pattern)
-   # i is 1 if the entire match is passed and 2 otherwise.
-   # j is 1 plus the number of backreferences
-   if (missing(backref) || is.null(backref)) {
-    noparen <- base::gsub("\\\\.", "", pattern)
-    noparen <- base::gsub("\\[[^\\]]*\\]", "", noparen)
-	j <- nchar(base::gsub("[^(]","", noparen))+1
-	i <- min(2, j)
-   } else {
-	i <- as.numeric(backref < 0) + 1
-	j <- abs(backref)+1
-   }
 
+   # proto object as replacement
    e <- NULL
    if (!inherits(replacement, "formula") && !is.function(replacement)) {
 	e <- replacement
@@ -77,38 +88,79 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
 	}
 	here$replacement <- e$replacement
    }
+
    here$replacement <- match.funfn(replacement)
+
+   if (missing(backref) || is.null(backref)) {
+      noparen <- base::gsub("\\\\.", "", pattern)
+      noparen <- base::gsub("\\[[^\\]]*\\]", "", noparen)
+	  backref <- nchar(base::gsub("[^(]","", noparen))
+   }
+
+   # if `&` is an argument then force backref to be 0 or negative
+   if (names(formals(here$replacement))[[1]] == "&") {
+	   backref <- - abs(backref)
+	   if (!is.null(e)) e$backref <- backref
+   }
+
+   # i is 1 if the entire match is passed and 2 otherwise.
+   # an extra set of parens are inserted if engine is R and backref <= 0
+   # no paren is the number of parentheses excluding escaped parentheses
+   j <- (engine == "R" && !is.null(backref) && backref <= 0) + abs(backref)
+   # i <- min(1, j)
+   i <- if (engine == "tcl" && backref <= 0) 0 else 1
+   # check if this next line is actually needed
+   j <- max(i, j)
+
    stopifnot(is.character(pattern), is.character(x), is.function(replacement))
    force(env)
    gsub.function <- function(x) {
       # x <- base::gsub('"', '\\\\"', x)
       # x <- chartr('"', '\b', x)
       # pattern <- chartr('"', '\b', pattern)
-      pattern <- paste("(", pattern, ")", sep = "")
+	  if (engine == "R" && !is.null(backref) && backref <=0) {
+		  pattern <- paste("(", pattern, ")", sep = "")
+      }
       if (!is.null(e)) {
           e$count <- 0
           if ("pre" %in% ls(e)) e$pre()
       }
-	  # replace match with \1\2 \\1 \2 \\2 \2 ... \1
-	  # replace each backref in regexp with 
-	  # \1\2 followed by backrefs separated by \2 all followed by \1
+	  # replace each substring of x that matches pattern with
+	  # \1\2 followed by backrefs separated by \2 all followed by \1.
+	  # Note \\1 refers to entire match, \\2 to 1st backref, \\3 to 2nd etc.
 	  # Using that create a string \1\2 first backref \2 second ... \1
-	  # and perform replacement
+	  # and perform replacement.
+	  # For example, z <- gsub("((.)/(.))", "\001\002\\2\002\\3\001", "5/6 8/9")
+      # gives z = "\001\0025\0026\001 \001\0028\0029\001"
+	  # and then split z on \1
+
       repl <- function(i,j) {  
 	      rs <- paste('\\', seq(i,j), collapse = "\2", sep = "") 
 	      rs <- paste('\1\2', rs, '\1', sep = "")
           # if backref= is too large, reduce by 1 and try again
-	      tryCatch(base::gsub(pattern, rs, x, ...),
-			error = function(x) if (j > i) repl(i,j-1) else stop(x))
+		  if (engine == "R")
+		    tryCatch(base::gsub(pattern, rs, x, ...),
+				error = function(x) if (j > i) repl(i,j-1) else stop(x))
+		  else {
+		   tcl("set", "pattern", pattern)
+		   tcl("set", "replacement", rs)
+           tcl("set", "x", x)
+		   s <- if (ignore.case) {
+			   'set r [regsub -all -nocase -- $pattern $x $replacement]'
+		   } else 'set r [regsub -all -- $pattern $x $replacement]'
+		   tryCatch(tclvalue(.Tcl(s)),
+			  error = function(x) if (j > i) repl(i,j-1) else stop(x))
+		  }	
       }
       z <- repl(i,j)
       z <- strsplit(z, "\1")[[1]]
+      # f splits string s into back references passing them to replacement fn
       f <- function(s) {
-	 if (nchar(s) > 0 && substring(s,1,1) == "\2") {
-	    s <- sub("\2$", "\2\2", s)
-	    L <- as.list(strsplit(s, "\2")[[1]][-1])
+		if (nchar(s) > 0 && substring(s,1,1) == "\2") {
+	      s <- sub("\2$", "\2\2", s)
+	      L <- as.list(strsplit(s, "\2")[[1]][-1])
             # if (!is.null(e)) L <- c(list(e), L)
-	    do.call(replacement, L)
+	      do.call(replacement, L)
         } else s
       }
       z <- paste(sapply(z, f), collapse = "")
@@ -116,11 +168,12 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
       z
       # gsub('\b', '\\\\"', z)
    }
+   # debug(gsub.function)
    sapply(x, gsub.function, USE.NAMES = USE.NAMES)
 }
 
 ostrapply <- 
-function (X, pattern, FUN = function(x, ...) x, ...,
+function (X, pattern, FUN = function(x, ...) x, ..., empty = NULL,
     simplify = FALSE, USE.NAMES = FALSE, combine = c) {
 	here <- environment()
 	combine <- match.funfn(combine)
@@ -179,7 +232,7 @@ function (X, pattern, FUN = function(x, ...) x, ...,
 			}
 		)
         }
-    ff <- function(x) { gsubfn(pattern, p, x, ...); p$v }
+    ff <- function(x) { gsubfn(pattern, p, x, engine = "R", ...); p$v }
     result <- sapply(X, ff, 
 	simplify = is.logical(simplify) && simplify, USE.NAMES = USE.NAMES)
     if (is.logical(simplify)) result else {
@@ -189,15 +242,21 @@ function (X, pattern, FUN = function(x, ...) x, ...,
 
 strapply <-
 function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
-	ignore.case = FALSE, perl = FALSE, 
-	engine = if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R", 
+	empty = NULL,
+	ignore.case = FALSE, perl = FALSE, engine = getOption("gsubfn.engine"),
 	simplify = FALSE, USE.NAMES = FALSE, combine = c) {
 				combine <- match.funfn(combine)
 				stopifnot(!missing(pattern))
 				pattern <- as.character(pattern)
+
+   if (missing(engine) || is.null(engine))
+      engine <- if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R"
+   engine <- match.arg(engine, c("tcl", "R"))
+   if (engine == "tcl") stopifnot(require(tcltk))
+
 				if (engine == "R" || is.proto(FUN) || perl) return(ostrapply(X = X, 
 						pattern = pattern, FUN = FUN, backref = backref, 
-						..., perl = perl, simplify = simplify, USE.NAMES = USE.NAMES, 
+						..., empty = empty, perl = perl, simplify = simplify, USE.NAMES = USE.NAMES, 
 						combine = combine))
 				stopifnot(engine == "tcl", require(tcltk))
                 if (is.proto(FUN)) {
@@ -216,8 +275,10 @@ function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
                 } else {
                         FUN <- match.funfn(FUN)
                 }
+				# ff is called for each component of the vector of strings
 				ff <- function(x) {
 					s <- strapply1(x, pattern, backref, ignore.case)
+					if (length(s) == 0 && !is.null(empty)) s <- matrix(empty, 1)
 					L <- lapply(seq_len(ncol(s)), function(j) {
 						combine(do.call(FUN, as.list(s[, j]))) })
 						# combine(do.call(FUN, list(s[, j]))) })
@@ -248,7 +309,7 @@ strapply1 <- function(x, e, backref, ignore.case = FALSE) {
 			if (about > 1) out[-1,, drop = FALSE] 
 			else out
 		} else {
-			mn <- 1 + backref > 0
+			mn <- 1 + (backref < 0)
 			mx <- min(abs(backref) + 1, about)
 			out[seq(mn, mx),, drop = FALSE]
 		}

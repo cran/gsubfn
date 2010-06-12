@@ -10,7 +10,9 @@
   replacement text for it.
 }
 \usage{
-gsubfn(pattern, replacement, x, backref, USE.NAMES = FALSE, env = parent.frame(), ...)
+gsubfn(pattern, replacement, x, backref, USE.NAMES = FALSE, 
+	ignore.case = FALSE, engine = getOption("gsubfn.engine"),
+	env = parent.frame(), ...)
 }
 \arguments{
   \item{pattern}{ Same as \code{pattern} in \code{gsub} }
@@ -26,6 +28,13 @@ are no backreferences and otherwise it will equal negative the number of
 back refenrences.  It determines this by counting the number of non-escaped
 left parentheses in the pattern.}
   \item{USE.NAMES}{ See \code{USE.NAMES} in \code{sapply}. }
+  \item{ignore.case}{If \code{TRUE} then case is ignored in the \code{pattern}
+		argument.}
+  \item{engine}{Specifies which engine to use.  If the R installation
+   			has \code{tcltk} capability then the \code{tcl} engine is used
+			unless \code{FUN} is a proto object in which case the
+			\code{"R"} engine is used (regardless of the setting of this
+			argument).}
   \item{env}{ Environment in which to evaluate the replacement function.
 Normally this is left at its default value.}
   \item{\dots}{ Other \code{gsub} arguments. }
@@ -73,6 +82,9 @@ Normally this is left at its default value.}
  end of each string (not each match).  They each take one argument,
  the object.
 
+ Note that if backref is zero or negative or if there are no parentheses
+ in the regular expression then internally the pattern will be parenthesized.
+
  Two utility functions \code{cat0} and \code{paste0} are available.
  They are like
  \code{\link[base]{cat}} and \code{\link[base]{paste}} except that their default
@@ -110,8 +122,8 @@ strapply("12;34:56,89,,12", "[0-9]+", simplify = c)
 # makes all letters except first in word lower case
 gsubfn("\\\\B.", tolower, "I LIKE A BANANA SPLIT", perl = TRUE)
 
-# replaces numbers with that many Xs
-gsubfn("[[:digit:]]+", ~ paste(rep("X", n), collapse = ""), "5.2")
+# replaces numbers with that many Xs separated by -
+gsubfn("[[:digit:]]+", ~ paste(rep("X", n), collapse = "-"), "5.2")
 
 # replaces units with scale factor
 gsubfn(".m", list(cm = "e1", km = "e6"), "33cm 45km")
@@ -124,6 +136,20 @@ gsubfn("\\\\w+", p, "the cat in the hat is back")
 p2 <- proto(pre = function(this) this$value <- 0,
 	fun = function(this, x) this$value <- value + as.numeric(x))
 gsubfn("[0-9]+", p2, "12 3 11, 25 9")
+
+# insert an ! after double # characters.  
+gsubfn("((.)\\\\2)", ~ paste0(..1, "!"), "abbcddd")
+
+# this only works if your R installation has tcltk capabilities
+# See following example for corresponding code with R engine
+if (isTRUE(capabilities()[["tcltk"]])) {
+	gsubfn("(.)\\\\1", ~ paste0(`&`, "!"), "abbcddd")
+}
+
+# with R and backref <=0 (implied) the pattern is internally parenthesized
+# so must use \\2 rather than \\1
+gsubfn("(.)\\\\2", ~ paste0(`&`, "!"), "abbcddd", engine = "R")
+
 
 }
 
