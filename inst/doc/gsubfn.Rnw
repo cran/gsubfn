@@ -538,7 +538,8 @@ fn$lapply(list(1:4, 1:5), ~ LETTERS[x])
 
 fn$mapply(~ seq_len(x) + y * z, 1:3, 4:6, 2) # list(9, 11:12, 13:15)
 
-fn$by(CO2[4:5], CO2[2], x ~ coef(lm(uptake ~ ., x)), simplify = rbind)
+CO2df <- as.data.frame(CO2)
+fn$by(CO2df[4:5], CO2df[2], x ~ coef(lm(uptake ~ ., x)), simplify = rbind)
 
 @
 
@@ -552,7 +553,8 @@ example places a panel number in the body of each panel.
 <<gsubfn-fn-lattice,eval=FALSE>>=
 library(lattice)
 library(grid)
-print(fn$xyplot(uptake ~ conc | Plant, CO2,
+CO2df <- as.data.frame(CO2)
+print(fn$xyplot(uptake ~ conc | Plant, CO2df,
       panel = ~~ { panel.xyplot(...); grid.text(panel.number(), .1, .85) }))
 @
 
@@ -580,7 +582,8 @@ on \code{conc} for each \code{Treatment}.  This replaces the sligtly
 uglier \code{do.call} construct which would otherwise have been required.
 
 <<gsubfn-fn-simplify>>=
-fn$by(CO2, CO2$Treatment, d ~ coef(lm(uptake ~ conc, d)), simplify = rbind)
+CO2df <- as.data.frame(CO2)
+fn$by(CO2df, CO2df$Treatment, d ~ coef(lm(uptake ~ conc, d)), simplify = rbind)
 @
 
 Here are some additional examples to illustrate the wide range of application.
@@ -596,30 +599,32 @@ fn$lapply(list(1:4, 1:3), ~ LETTERS[x])
 
 The next example uses \code{aggregate} to calculate the midrange 
 of each of \code{conc} and \code{uptake} for each \code{Type}. 
-The calculation is repeated using \code{cast} from the \pkg{reshape}
+The calculation is repeated using \code{dcast} from the \pkg{reshape2}
 package and again using \code{summaryBy} from the \pkg{doBy}
 package.
 Note that in two of the examples there are two formulas each and
 one is to be regarded as a function and the other not so we must
 use double \code{~{}} to distinguish the cases.
 <<gsubfn-fn-aggregate-0,echo=FALSE,results=hide>>=
-fn$aggregate(CO2[4:5], CO2[3], ~ mean(range(x)))
+CO2df <- as.data.frame(CO2)
+fn$aggregate(CO2df[4:5], CO2df[3], ~ mean(range(x)))
 
-library(reshape)
-fn$cast(Type ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
+library(reshape2)
+fn$dcast(Type ~ variable, data = melt(CO2df, id = 1:3), ~~ mean(range(x)))
 
 library(doBy) # need version 0.9 or later
-fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
+fn$summaryBy(. ~ Treatment, CO2df[3:5], FUN = ~~ c(midrange = mean(range(x))))
 @
 
 <<gsubfn-fn-aggregate>>=
-fn$aggregate(CO2[4:5], CO2[3], ~ mean(range(x)))
+fn$aggregate(CO2df[4:5], CO2df[3], ~ mean(range(x)))
 
-library(reshape)
-fn$cast(Treatment ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
+library(reshape2)
+fn$dcast(Treatment ~ variable, data = melt(CO2df, id = 1:3), ~~ mean(range(x)))
 
 library(doBy) # need version 0.9 or later
-fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
+CO2df <- as.data.frame(CO2)
+fn$summaryBy(. ~ Treatment, CO2df[3:5], FUN = ~~ c(midrange = mean(range(x))))
 @
 
 
@@ -834,7 +839,7 @@ The results in this paper were obtained using \proglang{R}
 \pkg{proto} \Sexpr{gsub("-", "--", packageDescription("proto")$Version)},
 \pkg{quantreg} \Sexpr{gsub("-", "--", packageDescription("quantreg")$Version)}
 and
-\pkg{reshape} \Sexpr{gsub("-", "--", packageDescription("reshape")$Version)}.
+\pkg{reshape2} \Sexpr{gsub("-", "--", packageDescription("reshape")$Version)}.
 
 \proglang{R} itself and all packages used are available from
 CRAN at \url{http://CRAN.R-project.org/}.

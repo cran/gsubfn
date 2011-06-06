@@ -48,24 +48,25 @@
    fn$by(BOD, 1:nrow(BOD), ~ c(mn = min(x), mx = max(x)), simplify = rbind)
 
    # calculate lm coefs of uptake vs conc for each Plant
-   fn$by(CO2, CO2$Plant, d ~ coef(lm(uptake ~ conc, d)), simplify = rbind)
+   CO2df <- as.data.frame(CO2)
+   fn$by(CO2df, CO2df$Plant, d ~ coef(lm(uptake ~ conc, d)), simplify = rbind)
 
    # mid range of conc and uptake by Plant
-   fn$aggregate(CO2[,4:5], CO2[1], ~ mean(range(x)))
+   fn$aggregate(CO2df[,4:5], CO2df[1], ~ mean(range(x)))
 
    # string interpolation
    j <- fn$cat("pi = $pi, exp = `exp(1)`\n")
 
 \dontrun{
 
-   # same but use cast/melt from reshape package
-   library(reshape)
-   fn$cast(Plant ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
+   # same but use dcast/melt from reshape package
+   library(reshape2)
+   fn$dcast(Plant ~ variable, data = melt(CO2df, id = 1:3), ~~ mean(range(x)))
 
    # same
    # uncomment when new version of doBy comes out (expected shortly)
    # library(doBy)
-   # fn$summaryBy(.~Plant,CO2[-(2:3)],FUN= ~~mean(range(x)), pref='midrange')
+   # fn$summaryBy(.~Plant,CO2df[-(2:3)],FUN= ~~mean(range(x)), pref='midrange')
 }
 
    # generalized matrix product
@@ -102,7 +103,8 @@
    fn$rollapply(LakeHuron, 12, ~ mean(range(x)))
 
    library(lattice)
-   fn$xyplot(uptake ~ conc | Plant, CO2,
+   CO2df <- as.data.frame(CO2)
+   fn$xyplot(uptake ~ conc | Plant, CO2df,
       panel = ... ~ { panel.xyplot(...); panel.text(200, 40, lab = 'X') })
 
    library(boot)
