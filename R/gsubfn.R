@@ -24,19 +24,19 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
   ignore.case = FALSE, engine = getOption("gsubfn.engine"),
   env = parent.frame(), ...) 
 {
+    if (isTRUE(list(...)$perl)) engine <- "R"
+    R.engine <- identical(engine, "R")
 
-   if (is.null(engine))
-      engine <- if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R"
-   engine <- match.arg(engine, c("tcl", "R"))
-   if (engine == "tcl") stopifnot(require(tcltk))
-
-   here <- environment()
+    here <- environment()
+    .Tcl <- tcltk::.Tcl
+    tcl <- tcltk::tcl
+    tclvalue <- tcltk::tclvalue
 
    if (missing(replacement)) here$replacement <- function(...) 
 	eval(parse(text = paste(..., sep = "")), env) 
 
    if (is.character(replacement)) {
-     if (engine == "R")
+     if (R.engine)
 	   return(base::gsub(pattern, replacement, x, ...))
 	 else {
 	   f <- function(x) {
@@ -105,11 +105,11 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
 
    # cat("backref:", backref, "\n")
    # Note. an extra set of parens are inserted if engine is R and backref <= 0
-   # no paren is the number of parentheses excluding escaped parentheses
+   # no of parens is the number of parentheses excluding escaped parentheses
    # if engine=="R" then i=1 and j=no of backrefs + 1 for match if backref>=0
-   # if engine=="tcl" then i=0 if backref<0 and i=1 otherwise.  j=abs(backref)
-   j <- (engine == "R" && !is.null(backref) && backref >= 0) + abs(backref)
-   i <- if (engine == "tcl" && backref >= 0) 0 else 1
+   # if engine!="R" then i=0 if backref<0 and i=1 otherwise.  j=abs(backref)
+   j <- (identical(engine, "R") && !is.null(backref) && backref >= 0) + abs(backref)
+   i <- if (!R.engine && backref >= 0) 0 else 1
    # check if this next line is actually needed
    j <- max(i, j)
 
@@ -121,7 +121,7 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
       # x <- base::gsub('"', '\\\\"', x)
       # x <- chartr('"', '\b', x)
       # pattern <- chartr('"', '\b', pattern)
-	  if (engine == "R" && !is.null(backref) && backref >=0) {
+	  if (R.engine && !is.null(backref) && backref >=0) {
 		  pattern <- paste("(", pattern, ")", sep = "")
       }
       if (!is.null(e)) {
@@ -141,7 +141,7 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
 	      rs <- paste('\\', seq(i,j), collapse = "\2", sep = "") 
 	      rs <- paste('\1\2', rs, '\1', sep = "")
           # if backref= is too large, reduce by 1 and try again
-		  if (engine == "R")
+		  if (R.engine)
 		    tryCatch(base::gsub(pattern, rs, x, ignore.case = ignore.case, ...),
 				error = function(x) if (j > i) repl(i,j-1) else stop(x))
 		  else {
@@ -237,7 +237,7 @@ function (X, pattern, FUN = function(x, ...) x, ignore.case = FALSE, ..., empty 
         }
     ff <- function(x, ...) { gsubfn(pattern, p, x, engine = "R", ignore.case = ignore.case, ...); p$v }
     result <- sapply(X, ff, ...,
-	simplify = is.logical(simplify) && simplify, USE.NAMES = USE.NAMES)
+		simplify = isTRUE(simplify), USE.NAMES = USE.NAMES)
     if (is.logical(simplify)) result else {
 		do.call(match.funfn(simplify), result)
 	}
@@ -252,17 +252,13 @@ function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
 				stopifnot(!missing(pattern))
 				pattern <- as.character(pattern)
 
-   if (missing(engine) || is.null(engine))
-      engine <- if (isTRUE(capabilities()[["tcltk"]])) "tcl" else "R"
-   engine <- match.arg(engine, c("tcl", "R"))
-   if (engine == "tcl") stopifnot(require(tcltk))
+				if (is.proto(FUN) || perl) engine <- "R"
 
-				if (engine == "R" || is.proto(FUN) || perl) 
+				if (identical(engine, "R"))
 						return(ostrapply(X = X, ignore.case = ignore.case,
 						pattern = pattern, FUN = FUN, backref = backref, 
 						..., empty = empty, perl = perl, simplify = simplify, USE.NAMES = USE.NAMES, 
 						combine = combine))
-				stopifnot(engine == "tcl", require(tcltk))
                 if (is.proto(FUN)) {
                         # TODO
                 } else if (is.character(FUN)) {
@@ -297,6 +293,9 @@ function (X, pattern, FUN = function(x, ...) x, backref = NULL, ...,
 }
 
 strapply1 <- function(x, e, backref, ignore.case = FALSE) {
+		.Tcl <- tcltk::.Tcl
+		tcl <- tcltk::tcl
+		tclvalue <- tcltk::tclvalue
         tcl("set", "e", e)
         tcl("set", "x", x)
         .Tcl('set about [regexp -about -- $e]')

@@ -1,6 +1,28 @@
-Changes in 0.5-7
+Changes in 0.6-2
 
-    o minor changes to address R CMD check.  No change in functionality.
+    o package is now byte compiled hence depends on 2.14.0 or higher
+
+    o if tcltk can be loaded it is loaded at startup.  If not, the gsubfn.engine
+	  option is set to "R", a message is given and subsequent calls will use 
+	  slower R code instead of tcltk.  Previously this check was done at run
+	  time in the individual functions.
+
+	o strapplyc now calls strapply if gsubfn.engine = "R"
+
+	o now uses withVisible instead of internal function eval.with.vis.  This
+	  internal change was made to satisfy R 2.15.0 and should not affect users.
+
+	o added more unit tests
+
+Changes in 0.6
+
+    o strapplyc added, a fast tcl-only version of strapply specialized to FUN=c.
+
+    o bug fix.  perl was ignored when engine = "tcl".
+
+	o unit test suite added.  demo("gsubfn-unitTests") will run it.
+
+    o added NAMESPACE
 
 Changes in 0.5-6
 

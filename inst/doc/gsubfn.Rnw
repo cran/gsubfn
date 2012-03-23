@@ -1,4 +1,4 @@
-\documentclass{Z}
+\documentclass[nojss]{jss}
 \DeclareGraphicsExtensions{.pdf,.eps}
 
 %% need no \usepackage{Sweave}
@@ -51,6 +51,12 @@ is provided to allow developers to readily
 build this functionality
 into their own functions so that even the \code{fn\$} 
 prefix need not be used.
+}
+
+\Address{
+ Gabor Grothendieck\\
+ GKX Associates Inc.\\
+ E-mail: \email{ggrothendieck@gmail.com}
 }
 
 \begin{document}
@@ -241,21 +247,10 @@ even if all back references are to be passed.
 The formula in this example is equivalent to specifying the
 function \code{function(x, y) as.numeric(x) + as.numeric(y)} :
 
-This example replaces the scale letter with an appropriate scale factor.
-For example, \code{"G"} means giga and corresponds to \code{"e9"}.
-
 <<gsubfn-xypair>>=
    s <- 'abc 10:20 def 30:40 50'
    gsubfn('([0-9]+):([0-9]+)', ~ as.numeric(x) + as.numeric(y), s)
 @
-
-<<gsubfn-si>>=
-   dat <- c('3.5G', '88P', '19') # test data
-   gsubfn('[MGP]$', ~ c(M = 'e6', G = 'e9', P = 'e12')[[x]], dat) 
-@
-
-A variation of the last example is available via the command
-\code{demo("gsubfn-si")}.
 
 \section[gsubfn with lists]{\code{gsubfn} with \code{list} objects}
 \label{sec:gsubfn with list objects}
@@ -267,7 +262,7 @@ matches then the first unnamed list component is returned.  If there is
 still no match then the string to be matched is returned so that effectively
 the lookup is ignored.
 
-Here is the last example redone with a list:
+For example:
 
 <<gsubfn-si>>=
    dat <- c('3.5G', '88P', '19') # test data
@@ -417,9 +412,13 @@ the initial digits and the rest as two separate fields we can write this:
 @
 
 In this example we calculate the midpoint of each interval.  
+(Note to myself.  The following code works if we enter it into R but not in
+the vignette.  Figure out what is wrong.  In the meantime we only show the
+source and but don't run it.)
 <<gsubfn-strapply-midpoint>>=
+as.num <- function(x) if (x == "NA") NA else as.numeric(x)
 rn <- c("[-11.9,-10.6]", "(NA,9.3]", "(9.3,8e01]", "(8.01,Inf]")
-colMeans(strapply(rn, "[^][(),]+", as.numeric, simplify = TRUE))
+colMeans(strapply(rn, "[^][(),]+", as.num, simplify = TRUE))
 @
 
 \code{combine}. The
@@ -445,7 +444,10 @@ as \code{gsubfn}.  For example, suppose we wish to extract the words from a stri
 their ordinal occurrence number.   Previously we did this with \code{gsubfn} and
 inserted the
 number back into the string.  This time we want to extract it. 
-
+(Note to myself.  The following code works if we enter it into R and even
+works as part of the vignette if we use R CMD Sweave but if we use R CMD build
+then it does not work.  Figure out what is wrong.  In the meantime we only 
+show the source and but don't run it.)
 <<gsubfn-strapply-words>>=
 pwords2 <- proto(
 	pre = function(this) { this$words <- list() },
@@ -538,8 +540,7 @@ fn$lapply(list(1:4, 1:5), ~ LETTERS[x])
 
 fn$mapply(~ seq_len(x) + y * z, 1:3, 4:6, 2) # list(9, 11:12, 13:15)
 
-CO2df <- as.data.frame(CO2)
-fn$by(CO2df[4:5], CO2df[2], x ~ coef(lm(uptake ~ ., x)), simplify = rbind)
+fn$by(CO2[4:5], CO2[2], x ~ coef(lm(uptake ~ ., x)), simplify = rbind)
 
 @
 
@@ -553,8 +554,7 @@ example places a panel number in the body of each panel.
 <<gsubfn-fn-lattice,eval=FALSE>>=
 library(lattice)
 library(grid)
-CO2df <- as.data.frame(CO2)
-print(fn$xyplot(uptake ~ conc | Plant, CO2df,
+print(fn$xyplot(uptake ~ conc | Plant, CO2,
       panel = ~~ { panel.xyplot(...); grid.text(panel.number(), .1, .85) }))
 @
 
@@ -582,8 +582,7 @@ on \code{conc} for each \code{Treatment}.  This replaces the sligtly
 uglier \code{do.call} construct which would otherwise have been required.
 
 <<gsubfn-fn-simplify>>=
-CO2df <- as.data.frame(CO2)
-fn$by(CO2df, CO2df$Treatment, d ~ coef(lm(uptake ~ conc, d)), simplify = rbind)
+fn$by(CO2, CO2$Treatment, d ~ coef(lm(uptake ~ conc, d)), simplify = rbind)
 @
 
 Here are some additional examples to illustrate the wide range of application.
@@ -599,32 +598,32 @@ fn$lapply(list(1:4, 1:3), ~ LETTERS[x])
 
 The next example uses \code{aggregate} to calculate the midrange 
 of each of \code{conc} and \code{uptake} for each \code{Type}. 
-The calculation is repeated using \code{dcast} from the \pkg{reshape2}
+The calculation is repeated using \code{cast} from the \pkg{reshape}
 package and again using \code{summaryBy} from the \pkg{doBy}
 package.
 Note that in two of the examples there are two formulas each and
 one is to be regarded as a function and the other not so we must
 use double \code{~{}} to distinguish the cases.
 <<gsubfn-fn-aggregate-0,echo=FALSE,results=hide>>=
-CO2df <- as.data.frame(CO2)
-fn$aggregate(CO2df[4:5], CO2df[3], ~ mean(range(x)))
+fn$aggregate(iris[-5], iris[5], ~ mean(range(x)))
 
-library(reshape2)
-fn$dcast(Type ~ variable, data = melt(CO2df, id = 1:3), ~~ mean(range(x)))
+library(reshape)
+fn$cast(Type ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
 
 library(doBy) # need version 0.9 or later
-fn$summaryBy(. ~ Treatment, CO2df[3:5], FUN = ~~ c(midrange = mean(range(x))))
+fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
 @
 
 <<gsubfn-fn-aggregate>>=
-fn$aggregate(CO2df[4:5], CO2df[3], ~ mean(range(x)))
+fn$aggregate(iris[-5], iris[5], ~ mean(range(x)))
+@
+<<gsubfn-fn-aggregate-a>>=
 
-library(reshape2)
-fn$dcast(Treatment ~ variable, data = melt(CO2df, id = 1:3), ~~ mean(range(x)))
+library(reshape)
+fn$cast(Treatment ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
 
 library(doBy) # need version 0.9 or later
-CO2df <- as.data.frame(CO2)
-fn$summaryBy(. ~ Treatment, CO2df[3:5], FUN = ~~ c(midrange = mean(range(x))))
+fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
 @
 
 
@@ -839,7 +838,7 @@ The results in this paper were obtained using \proglang{R}
 \pkg{proto} \Sexpr{gsub("-", "--", packageDescription("proto")$Version)},
 \pkg{quantreg} \Sexpr{gsub("-", "--", packageDescription("quantreg")$Version)}
 and
-\pkg{reshape2} \Sexpr{gsub("-", "--", packageDescription("reshape")$Version)}.
+\pkg{reshape} \Sexpr{gsub("-", "--", packageDescription("reshape")$Version)}.
 
 \proglang{R} itself and all packages used are available from
 CRAN at \url{http://CRAN.R-project.org/}.
