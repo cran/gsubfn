@@ -17,7 +17,7 @@ strapplyc <- function(X, pattern, backref, ignore.case = FALSE, simplify = FALSE
 	)
 	.Tcl <- tcltk::.Tcl
 	tcl <- tcltk::tcl
-	tcl("set", "X", as.tclObj(X))
+	tcl("set", "X", tcltk::as.tclObj(X))
 	tcl("set", "pattern", pattern)
 	tcl("set", "nocase", if (ignore.case) "-nocase" else "")
 	if (missing(backref) || is.null(backref) || is.na(backref))  backref <- 999
