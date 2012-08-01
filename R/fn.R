@@ -10,7 +10,7 @@ as.function.formula <- function(x, ...) {
 		f0
 	} else {
 		f <- function(x) {}
-		formals(f) <- rep(formals(f), length(vars))
+		formals(f) <- rep(as.list(formals(f)), length(vars))
 		names(formals(f)) <- vars
 		body(f) <- x[[length(x)]]
 		environment(f) <- environment(x)
@@ -98,7 +98,7 @@ fn <- structure(NA, class = "fn")
 		if (any.chara)
 		   for(i in seq(along = mcListE))
 		      if (is.chara[i])
-			mcListE[[i]] <- gsubfn(x = substring(mcListE[[i]], 2), envir = p)
+			mcListE[[i]] <- gsubfn(x = substring(mcListE[[i]], 2), env = p)
 
 		# if no ~~ formulas and no \1 strings use default strategy
 		# of converting all formulas to functions and if no formulas
@@ -112,7 +112,7 @@ fn <- structure(NA, class = "fn")
 		      if (any.char)
 		         for(i in seq(along = mcListE))
 		            if (is.char[i])
-			       mcListE[[i]] <- gsubfn(x = mcListE[[i]], envir = p)
+			       mcListE[[i]] <- gsubfn(x = mcListE[[i]], env = p)
 		   }
 		}
 			

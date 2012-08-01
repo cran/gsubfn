@@ -24,13 +24,16 @@ gsubfn <- function(pattern, replacement, x, backref, USE.NAMES = FALSE,
   ignore.case = FALSE, engine = getOption("gsubfn.engine"),
   env = parent.frame(), ...) 
 {
+    here <- environment()
+
     if (isTRUE(list(...)$perl)) engine <- "R"
     R.engine <- identical(engine, "R")
 
-    here <- environment()
-    .Tcl <- tcltk::.Tcl
-    tcl <- tcltk::tcl
-    tclvalue <- tcltk::tclvalue
+	if (!R.engine) {
+		.Tcl <- tcltk::.Tcl
+		tcl <- tcltk::tcl
+		tclvalue <- tcltk::tclvalue
+	}
 
    if (missing(replacement)) here$replacement <- function(...) 
 	eval(parse(text = paste(..., sep = "")), env) 
