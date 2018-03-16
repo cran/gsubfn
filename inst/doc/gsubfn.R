@@ -145,36 +145,7 @@ fn$lapply(list(1:4, 1:3), ~ LETTERS[x])
 
 
 ###################################################
-### code chunk number 16: gsubfn-fn-aggregate-0
-###################################################
-fn$aggregate(iris[-5], iris[5], ~ mean(range(x)))
-
-library(reshape)
-fn$cast(Type ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
-
-library(doBy) # need version 0.9 or later
-fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
-
-
-###################################################
-### code chunk number 17: gsubfn-fn-aggregate
-###################################################
-fn$aggregate(iris[-5], iris[5], ~ mean(range(x)))
-
-
-###################################################
-### code chunk number 18: gsubfn-fn-aggregate-a
-###################################################
-
-library(reshape)
-fn$cast(Treatment ~ variable, data = melt(CO2, id = 1:3), ~~ mean(range(x)))
-
-library(doBy) # need version 0.9 or later
-fn$summaryBy(. ~ Treatment, CO2[3:5], FUN = ~~ c(midrange = mean(range(x))))
-
-
-###################################################
-### code chunk number 19: gsubfn-fn-aggregate2
+### code chunk number 16: gsubfn-fn-aggregate2
 ###################################################
 set.seed(1)
 X <- data.frame(X = rnorm(24), W = runif(24), A = gl(2, 1, 24), B = gl(2, 2, 24))
@@ -183,7 +154,7 @@ fn$aggregate(1:nrow(X), X[3:4], i ~ weighted.mean(X[i,1], X[i,2]))
 
 
 ###################################################
-### code chunk number 20: gsubfn-fn-math
+### code chunk number 17: gsubfn-fn-math
 ###################################################
 fn$integrate(~1/((x+1)*sqrt(x)), lower = 0, upper = Inf)
 
@@ -191,7 +162,7 @@ fn$optimize(~ x^2, c(-1,1))
 
 
 ###################################################
-### code chunk number 21: gsubfn-fn-S4
+### code chunk number 18: gsubfn-fn-S4
 ###################################################
 setClass('ooc', representation(a = 'numeric'))
 fn$setGeneric('incr', x + value ~ standardGeneric('incr'))
@@ -202,7 +173,7 @@ oo
 
 
 ###################################################
-### code chunk number 22: gsubfn-fn-quantreg-load
+### code chunk number 19: gsubfn-fn-quantreg-load
 ###################################################
 library(quantreg)
 data(engel)
@@ -211,28 +182,28 @@ junk <- fn$lapply(1:9/10, tau ~ abline(coef(rq(foodexp ~ income, tau, engel))))
 
 
 ###################################################
-### code chunk number 23: gsubfn-fn-quantreg (eval = FALSE)
+### code chunk number 20: gsubfn-fn-quantreg (eval = FALSE)
 ###################################################
 ## plot(engel$income, engel$foodexp, xlab = 'income', ylab = 'food expenditure')
 ## junk <- fn$lapply(1:9/10, tau ~ abline(coef(rq(foodexp ~ income, tau, engel))))
 
 
 ###################################################
-### code chunk number 24: gsubfn-fn-quantreg-repeat
+### code chunk number 21: gsubfn-fn-quantreg-repeat
 ###################################################
 plot(engel$income, engel$foodexp, xlab = 'income', ylab = 'food expenditure')
 junk <- fn$lapply(1:9/10, tau ~ abline(coef(rq(foodexp ~ income, tau, engel))))
 
 
 ###################################################
-### code chunk number 25: gsubfn-fn-zoo
+### code chunk number 22: gsubfn-fn-zoo
 ###################################################
 library(zoo)
 fn$rollapply(LakeHuron, 12, ~ mean(range(x)))
 
 
 ###################################################
-### code chunk number 26: gsubfn-fn-zoo
+### code chunk number 23: gsubfn-fn-zoo
 ###################################################
 library(boot)
 set.seed(1)
@@ -240,21 +211,21 @@ fn$boot(rivers, ~ median(x[d]), R = 2000)
 
 
 ###################################################
-### code chunk number 27: gsubfn-fn-pi (eval = FALSE)
+### code chunk number 24: gsubfn-fn-pi (eval = FALSE)
 ###################################################
 ## x <- 0:50/50
 ## matplot(x, fn$outer(x, 1:8, ~ sin(x * k*pi)), type = 'blobcsSh')
 
 
 ###################################################
-### code chunk number 28: gsubfn-fn-pi-repeat
+### code chunk number 25: gsubfn-fn-pi-repeat
 ###################################################
 x <- 0:50/50
 matplot(x, fn$outer(x, 1:8, ~ sin(x * k*pi)), type = 'blobcsSh')
 
 
 ###################################################
-### code chunk number 29: gsubfn-fn-matmult
+### code chunk number 26: gsubfn-fn-matmult
 ###################################################
 a <- matrix(4:1, 2); b <- matrix(1:4, 2) # test matrices
 fn$apply(b, 2, x ~ fn$apply(a, 1, y ~ sum(x*y)))
@@ -262,26 +233,26 @@ a %*% b
 
 
 ###################################################
-### code chunk number 30: gsubfn-fn-subseq
+### code chunk number 27: gsubfn-fn-subseq
 ###################################################
 L <- fn$apply(fn$sapply(1:4, ~ rbind(i,i:4), simplify = cbind), 2, ~ x[1]:x[2])
 dput(L)
 
 
 ###################################################
-### code chunk number 31: gsubfn-fn-python
+### code chunk number 28: gsubfn-fn-python
 ###################################################
 fn$sapply( 1:10, ~ if (x%%2==0) x^2, simplify = c)
 
 
 ###################################################
-### code chunk number 32: gsubfn-fn-cat
+### code chunk number 29: gsubfn-fn-cat
 ###################################################
 fn$cat("pi = $pi, exp = `exp(1)`\n")
 
 
 ###################################################
-### code chunk number 33: gsubfn-fn-sq
+### code chunk number 30: gsubfn-fn-sq
 ###################################################
 sq <- function(f, x) { f <- match.funfn(f); f(x^2) }
 
